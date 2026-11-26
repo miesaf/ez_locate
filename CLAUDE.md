@@ -11,8 +11,8 @@ suggestions, adds, edits, deletes and blacklists entries. **Archived project** i
 (https://app.dimensikini.xyz/ezloc/, folder `ezloc`).
 
 - History: first at `dimensikini.xyz/dkr/ezloc`, then the mysqli version on app.dimensikini.xyz (Feb 2021, PHP 7.4).
-  Ported to PHP 8.5 on 2026-11-26 (ClickUp `86d4e29pz`, under `86d4e29pu`). The folder alone runs on PHP 8.5 through
-  its own `.htaccess` (`SetHandler application/x-lsphp85`).
+  Ported to PHP 8.5 on 2026-11-26 (ClickUp `86d4e29pz`, under `86d4e29pu`). Its own `.htaccess` pins PHP 8.5
+  (`SetHandler application/x-lsphp85`); keep the pin even though the whole archive site defaults to PHP 8.5 since 2026-11-27.
 
 ## Data
 
@@ -44,6 +44,14 @@ actions on the listing pages (ignored unless logged in). Actions are GET links w
 PHP 8.5 with mysqli and a local MariaDB (the owner uses EnvKit). Import a dump, write `config.php`, then
 `php -d display_errors=1 -d error_reporting=-1 -S 127.0.0.1:8130 -t .`. The built-in server ignores `.htaccess`, so
 check the deny rules on the real host.
+
+## Status (2026-11-27)
+
+- Deployed on 2026-11-26 (PR #1, PHP 8.5.13) to the `ezloc` folder. ClickUp `86d4e29pz` is complete.
+- Open: `admin_id` and `admin_hash` in the server's `config.php` were still empty on 2026-11-27, so nobody can log
+  in until the owner fills them from `tools/admin-hash.php`. The old hard-coded password stays in git history.
+- The archive's root `.htaccess` (not in this repo) also refuses `..` requests and serves no `connectDB.php`, `config.json`,
+  `*.sql`, `*.log`, `*.md`, `error_log`, `LICENSE*` or composer/package files in any folder.
 
 ## Deploy
 
