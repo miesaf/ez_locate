@@ -1,3 +1,4 @@
+<?php ob_start(); ?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -32,33 +33,22 @@
 	
 <?php
 	session_start();
-	if(!$_SESSION['el_login'])
-	{
-		header("Location: index.php");
-		exit;
-	}
-	
 	include('connectDB.php');
+	
+	// Admin only
+	require_login();
 	
 	if(isset($_GET["L_LAW"]))
 	{
 		// Variables from pendaftaran.php
-		$ID	= $_GET["L_LAW"];
+		$ID	= request_id($_GET, "L_LAW");
 		
-		//SQL query command
-		$sql="INSERT INTO LAWATAN (NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PEGAWAI) SELECT NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PEGAWAI FROM HIT_LAWATAN WHERE ID_LAW = $ID;";
+		// copy the row to LAWATAN and delete it from HIT_LAWATAN
+		$sql	= "INSERT INTO LAWATAN (NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PEGAWAI) SELECT NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PEGAWAI FROM HIT_LAWATAN WHERE ID_LAW = ?";
+		$sql2	= "DELETE FROM HIT_LAWATAN WHERE ID_LAW = ?";
 		
-		// execute query
-		$exe_sql = mysqli_query($condb, $sql);
-		
-		// confirming the record is added
-		if ($exe_sql)
+		if ($ID !== null && db_move($sql, $sql2, $ID))
 		{
-			$sql2="DELETE FROM HIT_LAWATAN WHERE ID_LAW = $ID;";
-			
-			// execute query
-			$exe_sql2 = mysqli_query($condb, $sql2);
-			
 			echo '<html>
 					<head>
 						<script>
@@ -87,22 +77,14 @@
 	if(isset($_GET["L_BEN"]))
 	{
 		// Variables from pendaftaran.php
-		$ID	= $_GET["L_BEN"];
+		$ID	= request_id($_GET, "L_BEN");
 		
-		//SQL query command
-		$sql="INSERT INTO BENGKEL (NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PENCERAMAH, JAWATAN, KELAYAKAN, KEMAHIRAN) SELECT NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PENCERAMAH, JAWATAN, KELAYAKAN, KEMAHIRAN FROM HIT_BENGKEL WHERE ID_BEN = $ID;";
+		// copy the row to BENGKEL and delete it from HIT_BENGKEL
+		$sql	= "INSERT INTO BENGKEL (NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PENCERAMAH, JAWATAN, KELAYAKAN, KEMAHIRAN) SELECT NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PENCERAMAH, JAWATAN, KELAYAKAN, KEMAHIRAN FROM HIT_BENGKEL WHERE ID_BEN = ?";
+		$sql2	= "DELETE FROM HIT_BENGKEL WHERE ID_BEN = ?";
 		
-		// execute query
-		$exe_sql = mysqli_query($condb, $sql);
-		
-		// confirming the record is added
-		if ($exe_sql)
+		if ($ID !== null && db_move($sql, $sql2, $ID))
 		{
-			$sql2="DELETE FROM HIT_BENGKEL WHERE ID_BEN = $ID;";
-			
-			// execute query
-			$exe_sql2 = mysqli_query($condb, $sql2);
-			
 			echo '<html>
 					<head>
 						<script>
@@ -128,13 +110,13 @@
 	}
 	
 	// Padam Lawatan
-	if(isset($_GET['P_LAW']) && is_numeric($_GET['P_LAW']))
+	if(isset($_GET['P_LAW']))
 	{
 		// get ID value
-		$ID = mysqli_real_escape_string($condb, $_GET['P_LAW']);
+		$ID = request_id($_GET, 'P_LAW');
 		
 		// delete the entry
-		$result = mysqli_query($condb, "DELETE FROM HIT_LAWATAN WHERE ID_LAW = $ID"); 
+		$result = $ID !== null && db_query("DELETE FROM HIT_LAWATAN WHERE ID_LAW = ?", [$ID]) && mysqli_affected_rows($condb) === 1;
 		
 		// check for deletion
 		if ($result)
@@ -164,13 +146,13 @@
 	}
 	
 	// Padam Penceramah
-	if(isset($_GET['P_BEN']) && is_numeric($_GET['P_BEN']))
+	if(isset($_GET['P_BEN']))
 	{
 		// get ID value
-		$ID = mysqli_real_escape_string($condb, $_GET['P_BEN']);
+		$ID = request_id($_GET, 'P_BEN');
 		
 		// delete the entry
-		$result = mysqli_query($condb, "DELETE FROM HIT_BENGKEL WHERE ID_BEN = $ID"); 
+		$result = $ID !== null && db_query("DELETE FROM HIT_BENGKEL WHERE ID_BEN = ?", [$ID]) && mysqli_affected_rows($condb) === 1;
 		
 		// check for deletion
 		if ($result)
@@ -240,7 +222,7 @@
                     </a>
                 </li>
 <?php
-	if(isset($_SESSION['el_login']))
+	if(!empty($_SESSION['el_login']))
 	{
 ?>
 				<li>
@@ -301,7 +283,7 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="cadangan.php">Senarai Hitam</a>
+                    <a class="navbar-brand" href="senarai_hit.php">Senarai Hitam</a>
                 </div>
                 <div class="collapse navbar-collapse">
 					
@@ -340,7 +322,7 @@
 		$sql = "SELECT * FROM HIT_LAWATAN ORDER BY NEGERI, NAMA";
 		
 		// execute listing query
-		$result = mysqli_query($condb, $sql) or die("SQL select statement failed");
+		$result = db_query($sql) or die("SQL select statement failed");
 ?>
 					<div class="col-md-12">
                         <div class="card">
@@ -365,9 +347,12 @@
 		// Initialise index number
 		$BIL = 0;
 		
+		$DNEG = [];
+		$DIND = [];
+		
 		// Display negeri name array
 		$sql_dneg		= "SELECT * FROM NEGERI";
-		$result_dneg	= mysqli_query($condb, $sql_dneg);
+		$result_dneg	= db_query($sql_dneg);
 		while($row_dneg	= mysqli_fetch_array($result_dneg))
 		{
 			$DID_NEG		= $row_dneg["ID_NEGERI"];
@@ -377,7 +362,7 @@
 		
 		// Display industri name array
 		$sql_dind		= "SELECT * FROM INDUS";
-		$result_dind	= mysqli_query($condb, $sql_dind);
+		$result_dind	= db_query($sql_dind);
 		while($row_dind = mysqli_fetch_array($result_dind))
 		{
 			$DID_IND		= $row_dind["ID_INDUS"];
@@ -391,7 +376,7 @@
 			$BIL++;
 			
 			// extract specific fields
-			$ID_LAW		= $row['ID_LAW'];
+			$ID_LAW		= (int) $row['ID_LAW'];
 			$NAMA		= $row['NAMA'];
 			$ALAMAT		= $row['ALAMAT'];
 			$NEGERI		= $row['NEGERI'];
@@ -400,19 +385,19 @@
 			$PEGAWAI	= $row['PEGAWAI'];
 			
 			// Display subtitutes
-			$DNEGERI	= $DNEG[$NEGERI];
-			$DINDUS		= $DIND[$INDUS];
+			$DNEGERI	= $DNEG[$NEGERI] ?? $NEGERI;
+			$DINDUS		= $DIND[$INDUS] ?? $INDUS;
 			
-			$DALAMAT	= "$ALAMAT,<br><b>$DNEGERI</b>.";
+			$DALAMAT	= nl2br(e($ALAMAT)) . ",<br><b>" . e($DNEGERI) . "</b>.";
 ?>
 										<tr>
                                         	<td><?php echo $BIL; ?></td>
-                                        	<td><?php echo $NAMA; ?></td>
-                                        	<td><?php echo nl2br($DALAMAT); ?></td>
-                                        	<td><?php echo $SEKTOR; ?></td>
-											<td><?php echo $DINDUS; ?></td>
-                                        	<td><?php echo nl2br($PEGAWAI); ?></td>
-											<td align="center"><button class="btn btn-xs btn-success btn-fill" type="button" value="Senarai Putih" onClick='confirmHITL(<?php echo $ID_LAW; ?>)'>Senarai Putih</button><br><br><button class="btn btn-xs btn-danger btn-fill" type="button" value="Padam" onClick='confirmDell(<?php echo $ID_LAW; ?>)'>Padam</button></td>
+                                        	<td><?php echo e($NAMA); ?></td>
+                                        	<td><?php echo $DALAMAT; ?></td>
+                                        	<td><?php echo e($SEKTOR); ?></td>
+											<td><?php echo e($DINDUS); ?></td>
+                                        	<td><?php echo nl2br(e($PEGAWAI)); ?></td>
+											<td align="center"><button class="btn btn-xs btn-success btn-fill" type="button" value="Senarai Putih" onClick='confirmHITL(<?php echo e($ID_LAW); ?>)'>Senarai Putih</button><br><br><button class="btn btn-xs btn-danger btn-fill" type="button" value="Padam" onClick='confirmDell(<?php echo e($ID_LAW); ?>)'>Padam</button></td>
                                         </tr>
 <?php
 		}
@@ -440,7 +425,7 @@
 		$sql = "SELECT * FROM HIT_BENGKEL ORDER BY NEGERI, NAMA";
 		
 		// execute listing query
-		$result = mysqli_query($condb, $sql) or die("SQL select statement failed");
+		$result = db_query($sql) or die("SQL select statement failed");
 ?>
 					<div class="col-md-12">
                         <div class="card">
@@ -468,9 +453,13 @@
 		// Initialise index number
 		$BIL = 0;
 		
+		$DNEG = [];
+		$DIND = [];
+		$DKEL = [];
+		
 		// Display negeri name array
 		$sql_dneg		= "SELECT * FROM NEGERI";
-		$result_dneg	= mysqli_query($condb, $sql_dneg);
+		$result_dneg	= db_query($sql_dneg);
 		while($row_dneg	= mysqli_fetch_array($result_dneg))
 		{
 			$DID_NEG		= $row_dneg["ID_NEGERI"];
@@ -480,7 +469,7 @@
 		
 		// Display industri name array
 		$sql_dind		= "SELECT * FROM INDUS";
-		$result_dind	= mysqli_query($condb, $sql_dind);
+		$result_dind	= db_query($sql_dind);
 		while($row_dind = mysqli_fetch_array($result_dind))
 		{
 			$DID_IND		= $row_dind["ID_INDUS"];
@@ -490,7 +479,7 @@
 		
 		// Display industri name array
 		$sql_dkel		= "SELECT * FROM KELAYAKAN";
-		$result_dkel	= mysqli_query($condb, $sql_dkel);
+		$result_dkel	= db_query($sql_dkel);
 		while($row_dkel = mysqli_fetch_array($result_dkel))
 		{
 			$DID_KEL		= $row_dkel["ID_KEL"];
@@ -504,7 +493,7 @@
 			$BIL++;
 			
 			// extract specific fields
-			$ID_BEN		= $row['ID_BEN'];
+			$ID_BEN		= (int) $row['ID_BEN'];
 			$NAMA		= $row['NAMA'];
 			$ALAMAT		= $row['ALAMAT'];
 			$NEGERI		= $row['NEGERI'];
@@ -516,22 +505,22 @@
 			$KEMAHIRAN	= $row['KEMAHIRAN'];
 			
 			// Display subtitutes
-			$DNEGERI	= $DNEG[$NEGERI];
-			$DINDUS		= $DIND[$INDUS];
-			$DKELAYAKAN	= $DKEL[$KELAYAKAN];
+			$DNEGERI	= $DNEG[$NEGERI] ?? $NEGERI;
+			$DINDUS		= $DIND[$INDUS] ?? $INDUS;
+			$DKELAYAKAN	= $DKEL[$KELAYAKAN] ?? $KELAYAKAN;
 			
-			$DALAMAT	= "$ALAMAT,<br><b>$DNEGERI</b>.";
+			$DALAMAT	= nl2br(e($ALAMAT)) . ",<br><b>" . e($DNEGERI) . "</b>.";
 ?>
 										<tr>
                                         	<td><?php echo $BIL; ?></td>
-                                        	<td><?php echo $NAMA; ?></td>
-                                        	<td><?php echo nl2br($DALAMAT); ?></td>
-                                        	<td><?php echo $SEKTOR; ?></td>
-											<td><?php echo $DINDUS; ?></td>
-                                        	<td><?php echo nl2br($PENCERAMAH) . "<br><b>($JAWATAN)</b>"; ?></td>
-											<td><?php echo $DKELAYAKAN; ?></td>
-											<td><?php echo $KEMAHIRAN; ?></td>
-											<td align="center"><button class="btn btn-xs btn-success btn-fill" type="button" value="Senarai Putih" onClick='confirmHITP(<?php echo $ID_BEN; ?>)'>Senarai Putih</button><br><br><button class="btn btn-xs btn-danger btn-fill" type="button" value="Padam" onClick='confirmDelb(<?php echo $ID_BEN; ?>)'>Padam</button></td>
+                                        	<td><?php echo e($NAMA); ?></td>
+                                        	<td><?php echo $DALAMAT; ?></td>
+                                        	<td><?php echo e($SEKTOR); ?></td>
+											<td><?php echo e($DINDUS); ?></td>
+                                        	<td><?php echo nl2br(e($PENCERAMAH)) . "<br><b>(" . e($JAWATAN) . ")</b>"; ?></td>
+											<td><?php echo e($DKELAYAKAN); ?></td>
+											<td><?php echo e($KEMAHIRAN); ?></td>
+											<td align="center"><button class="btn btn-xs btn-success btn-fill" type="button" value="Senarai Putih" onClick='confirmHITP(<?php echo e($ID_BEN); ?>)'>Senarai Putih</button><br><br><button class="btn btn-xs btn-danger btn-fill" type="button" value="Padam" onClick='confirmDelb(<?php echo e($ID_BEN); ?>)'>Padam</button></td>
                                         </tr>
 <?php
 		}

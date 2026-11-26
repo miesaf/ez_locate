@@ -1,3 +1,4 @@
+<?php ob_start(); ?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -44,28 +45,20 @@
 	session_start();
 	include("connectDB.php");
 	
-	if(isset($_SESSION["el_login"]) && $_SESSION["el_login"])
+	if(!empty($_SESSION['el_login']))
 	{
 		// Menyenarai hitam data
 		if(isset($_GET["H_LAW"]))
 		{
 			// Variables from lawatan.php
-			$ID	= $_GET["H_LAW"];
+			$ID	= request_id($_GET, "H_LAW");
 			
-			//SQL query command
-			$sql="INSERT INTO HIT_LAWATAN (NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PEGAWAI) SELECT NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PEGAWAI FROM LAWATAN WHERE ID_LAW = $ID;";
+			// copy the row to HIT_LAWATAN and delete it from LAWATAN
+			$sql	= "INSERT INTO HIT_LAWATAN (NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PEGAWAI) SELECT NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PEGAWAI FROM LAWATAN WHERE ID_LAW = ?";
+			$sql2	= "DELETE FROM LAWATAN WHERE ID_LAW = ?";
 			
-			// execute query
-			$exe_sql = mysqli_query($condb, $sql);
-			
-			// confirming the record is added
-			if ($exe_sql)
+			if ($ID !== null && db_move($sql, $sql2, $ID))
 			{
-				$sql2="DELETE FROM LAWATAN WHERE ID_LAW = $ID;";
-				
-				// execute query
-				$exe_sql2 = mysqli_query($condb, $sql2);
-				
 				echo '<html>
 						<head>
 							<script>
@@ -91,13 +84,13 @@
 		}
 		
 		// Padam lawatan
-		if(isset($_GET['PADAM']) && is_numeric($_GET['PADAM']))
+		if(isset($_GET['PADAM']))
 		{
 			// get ID value
-			$ID = mysqli_real_escape_string($condb, $_GET['PADAM']);
+			$ID = request_id($_GET, 'PADAM');
 			
 			// delete the entry
-			$result = mysqli_query($condb, "DELETE FROM LAWATAN WHERE ID_LAW = $ID"); 
+			$result = $ID !== null && db_query("DELETE FROM LAWATAN WHERE ID_LAW = ?", [$ID]) && mysqli_affected_rows($condb) === 1;
 			
 			// check for deletion
 			if ($result)
@@ -168,7 +161,7 @@
                     </a>
                 </li>
 <?php
-			if(isset($_SESSION['el_login']))
+			if(!empty($_SESSION['el_login']))
 			{
 ?>
 				<li>
@@ -248,14 +241,21 @@
                             </div>
                             <div class="content table-responsive table-full-width">
 <?php
+	// Filter and search values from the query string (null when missing)
+	$NEG	= request_text($_GET, 'NEG');
+	$SEK	= request_text($_GET, 'SEK');
+	$IND	= request_text($_GET, 'IND');
+	$CARI	= request_text($_GET, 'CARI');
+	$TAPIS	= ($NEG !== null) && ($SEK !== null) && ($IND !== null);
+	
 	// List by batch development
 	// create the selection query
 	$sql1 = "SELECT * FROM NEGERI ORDER BY NEGERI";
 	$sql2 = "SELECT * FROM INDUS";
 	
 	// execute selection query
-	$result1 = mysqli_query($condb, $sql1) or die("SQL negeri select statement failed");
-	$result2 = mysqli_query($condb, $sql2) or die("SQL industri select statement failed");
+	$result1 = db_query($sql1) or die("SQL negeri select statement failed");
+	$result2 = db_query($sql2) or die("SQL industri select statement failed");
 ?>
 								<center>
 									<table align="center" class="no-print">
@@ -282,7 +282,7 @@
 															<select name="NEG">
 																<?php
 	$N_SEMUA    = null;
-	if((isset($_GET['NEG'])) && ($_GET['NEG'] == ""))
+	if($NEG === "")
 	{
 		$N_SEMUA	= "selected";
 	}
@@ -296,9 +296,9 @@
 		$NEG1	= $row1["ID_NEGERI"];
 		$NEG2	= $row1["NEGERI"];
 		
-		if((isset($_GET['NEG'])) && ($NEG1 == $_GET['NEG'])){ $sel1 = " selected"; }
+		if($NEG1 === $NEG){ $sel1 = " selected"; }
 ?>
-																<option value="<?php echo $NEG1; ?>" <?php echo $sel1; ?>> <?php echo $NEG2; ?> </option>
+																<option value="<?php echo e($NEG1); ?>" <?php echo $sel1; ?>> <?php echo e($NEG2); ?> </option>
 <?php
 		$sel1 = null;
 	}
@@ -330,15 +330,15 @@
 															<select name="SEK">
 <?php
 	$S_SEMUA    = null;
-	if((isset($_GET['SEK'])) && ($_GET['SEK'] == ""))
+	if($SEK === "")
 	{
 		$S_SEMUA	= "selected";
 	}
 ?>
 																<option value="" <?php echo $S_SEMUA; ?>> Semua </option>
 																<option disabled></option>
-																<option value="Swasta" <?php if((isset($_GET['SEK'])) && ($_GET['SEK'] == "Swasta"))echo "selected"; ?>> Swasta </option>
-																<option value="Kerajaan" <?php if((isset($_GET['SEK'])) && ($_GET['SEK'] == "Kerajaan"))echo "selected"; ?>> Kerajaan </option>
+																<option value="Swasta" <?php if($SEK === "Swasta")echo "selected"; ?>> Swasta </option>
+																<option value="Kerajaan" <?php if($SEK === "Kerajaan")echo "selected"; ?>> Kerajaan </option>
 															</select>
 														</td>
 													</tr>
@@ -361,7 +361,7 @@
 															<select name="IND">
 <?php
 				$I_SEMUA    = null;
-				if((isset($_GET['IND'])) && ($_GET['IND'] == ""))
+				if($IND === "")
 				{
 					$I_SEMUA	= "selected";
 				}
@@ -375,9 +375,9 @@
 					$IND1	= $row2["ID_INDUS"];
 					$IND2	= $row2["INDUSTRI"];
 					
-					if((isset($_GET['IND'])) && ($IND1 == $_GET['IND'])){ $sel3 = " selected"; }
+					if($IND1 === $IND){ $sel3 = " selected"; }
 ?>
-																<option value="<?php echo $IND1; ?>" <?php echo $sel3; ?>> <?php echo $IND2; ?> </option>
+																<option value="<?php echo e($IND1); ?>" <?php echo $sel3; ?>> <?php echo e($IND2); ?> </option>
 <?php
 					$sel3 = null;
 				}
@@ -425,53 +425,49 @@
 								</center><br>
 <?php
 	// Papar hasil carian
-	if (isset($_GET['CARI']))
+	if ($CARI !== null)
 	{
-		$CARI	= $_GET['CARI'];
+		$LIKE	= "%" . $CARI . "%";
 		
 		// create the listing query
-		$sql = "SELECT * FROM LAWATAN WHERE NAMA LIKE '%$CARI%' UNION SELECT * FROM LAWATAN WHERE ALAMAT LIKE '%$CARI%' UNION SELECT * FROM LAWATAN WHERE PEGAWAI LIKE '%$CARI%' ORDER BY NAMA";
+		$sql = "SELECT * FROM LAWATAN WHERE NAMA LIKE ? UNION SELECT * FROM LAWATAN WHERE ALAMAT LIKE ? UNION SELECT * FROM LAWATAN WHERE PEGAWAI LIKE ? ORDER BY NAMA";
 		
 		// execute listing query
-		$result	= mysqli_query($condb, $sql) or die("SQL select statement failed");
+		$result	= db_query($sql, [$LIKE, $LIKE, $LIKE]) or die("SQL select statement failed");
 	}
 	
 	// Papar senarai
-	if((isset($_GET['NEG'])) && (isset($_GET['SEK'])) && (isset($_GET['IND'])))
+	if($TAPIS)
 	{
-		if(($_GET['NEG'] == "") && ($_GET['SEK'] == "") && ($_GET['IND'] == ""))
+		// one placeholder per chosen filter
+		$WHERE	= [];
+		$PARAMS	= [];
+		
+		if($NEG != "")
 		{
-			$TW	= "";
+			$WHERE[]	= "NEGERI = ?";
+			$PARAMS[]	= $NEG;
 		}
-		else
+		
+		if($SEK != "")
 		{
-			$TW = "WHERE";
-			
-			if($_GET['NEG'] != "")
-			{
-				$TW	= $TW . " NEGERI = '" . $_GET['NEG'] . "'";
-			}
-			
-			if($_GET['SEK'] != "")
-			{
-				if($_GET['NEG'] != "") { $TW = $TW . " AND"; }
-				
-				$TW	= $TW . " SEKTOR = '" . $_GET['SEK'] . "'";
-			}
-			
-			if($_GET['IND'] != "")
-			{
-				if(($_GET['NEG'] != "") || ($_GET['SEK'] != "")) { $TW = $TW . " AND"; }
-				
-				$TW	= $TW . " INDUS = '" . $_GET['IND'] . "'";
-			}
+			$WHERE[]	= "SEKTOR = ?";
+			$PARAMS[]	= $SEK;
 		}
+		
+		if($IND != "")
+		{
+			$WHERE[]	= "INDUS = ?";
+			$PARAMS[]	= $IND;
+		}
+		
+		$TW = $WHERE ? "WHERE " . implode(" AND ", $WHERE) : "";
 		
 		// create the listing query
 		$sql = "SELECT * FROM LAWATAN $TW ORDER BY NEGERI, NAMA";
 		
 		// execute listing query
-		$result = mysqli_query($condb, $sql) or die("SQL select statement failed");
+		$result = db_query($sql, $PARAMS) or die("SQL select statement failed");
 	}
 ?>
                                 <table class="table table-hover table-striped">
@@ -482,19 +478,22 @@
                                     	<th>Sektor</th>
                                     	<th>Industri</th>
                                     	<th>Pegawai</th>
-										<?php if(isset($_SESSION["el_login"])){ echo "<th>Tindakan</th>"; } ?>
+										<?php if(!empty($_SESSION['el_login'])){ echo "<th>Tindakan</th>"; } ?>
                                     </thead>
                                     <tbody>
 <?php                            
 	// Papar table
-	if (isset($_GET['CARI']) || ((isset($_GET['NEG'])) && (isset($_GET['SEK'])) && (isset($_GET['IND']))))
+	if (($CARI !== null) || $TAPIS)
 	{            
 		// Initialise index number
 		$BIL = 0;
 		
+		$DNEG = [];
+		$DIND = [];
+		
 		// Display negeri name array
 		$sql_dneg		= "SELECT * FROM NEGERI";
-		$result_dneg	= mysqli_query($condb, $sql_dneg);
+		$result_dneg	= db_query($sql_dneg);
 		while($row_dneg	= mysqli_fetch_array($result_dneg))
 		{
 			$DID_NEG		= $row_dneg["ID_NEGERI"];
@@ -504,7 +503,7 @@
 		
 		// Display industri name array
 		$sql_dind		= "SELECT * FROM INDUS";
-		$result_dind	= mysqli_query($condb, $sql_dind);
+		$result_dind	= db_query($sql_dind);
 		while($row_dind = mysqli_fetch_array($result_dind))
 		{
 			$DID_IND		= $row_dind["ID_INDUS"];
@@ -518,7 +517,7 @@
 			$BIL++;
 			
 			// extract specific fields
-			$ID_LAW		= $row['ID_LAW'];
+			$ID_LAW		= (int) $row['ID_LAW'];
 			$NAMA		= $row['NAMA'];
 			$ALAMAT		= $row['ALAMAT'];
 			$NEGERI		= $row['NEGERI'];
@@ -527,19 +526,19 @@
 			$PEGAWAI	= $row['PEGAWAI'];
 			
 			// Display subtitutes
-			$DNEGERI	= $DNEG[$NEGERI];
-			$DINDUS		= $DIND[$INDUS];
+			$DNEGERI	= $DNEG[$NEGERI] ?? $NEGERI;
+			$DINDUS		= $DIND[$INDUS] ?? $INDUS;
 			
-			$DALAMAT	= "$ALAMAT,<br><b>$DNEGERI</b>.";
+			$DALAMAT	= nl2br(e($ALAMAT)) . ",<br><b>" . e($DNEGERI) . "</b>.";
 ?>
 										<tr>
                                         	<td><?php echo $BIL; ?></td>
-                                        	<td><?php echo $NAMA; ?></td>
-                                        	<td><?php echo nl2br($DALAMAT); ?></td>
-                                        	<td><?php echo $SEKTOR; ?></td>
-											<td><?php echo $DINDUS; ?></td>
-                                        	<td><?php echo nl2br($PEGAWAI); ?></td>
-											<?php if(isset($_SESSION["el_login"])){ echo "<td align=\"center\"><a href=\"pinda_law.php?ID=$ID_LAW\"><button class=\"btn btn-xs btn-warning btn-fill\">Pinda</button></a><br><br><button class=\"btn btn-xs btn-default btn-fill\" type=\"button\" value=\"Senarai Hitam\" onClick='confirmHIT($ID_LAW)'>Senarai Hitam</button><br><br><button class=\"btn btn-xs btn-danger btn-fill\" type=\"button\" value=\"Padam\" onClick='confirmDel($ID_LAW)'>Padam</button></td>"; } ?>
+                                        	<td><?php echo e($NAMA); ?></td>
+                                        	<td><?php echo $DALAMAT; ?></td>
+                                        	<td><?php echo e($SEKTOR); ?></td>
+											<td><?php echo e($DINDUS); ?></td>
+                                        	<td><?php echo nl2br(e($PEGAWAI)); ?></td>
+											<?php if(!empty($_SESSION['el_login'])){ echo "<td align=\"center\"><a href=\"pinda_law.php?ID=$ID_LAW\"><button class=\"btn btn-xs btn-warning btn-fill\">Pinda</button></a><br><br><button class=\"btn btn-xs btn-default btn-fill\" type=\"button\" value=\"Senarai Hitam\" onClick='confirmHIT($ID_LAW)'>Senarai Hitam</button><br><br><button class=\"btn btn-xs btn-danger btn-fill\" type=\"button\" value=\"Padam\" onClick='confirmDel($ID_LAW)'>Padam</button></td>"; } ?>
                                         </tr>
 <?php
 		}
