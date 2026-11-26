@@ -56,7 +56,7 @@
 			$sql="INSERT INTO HIT_BENGKEL (NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PENCERAMAH, JAWATAN, KELAYAKAN, KEMAHIRAN) SELECT NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PENCERAMAH, JAWATAN, KELAYAKAN, KEMAHIRAN FROM BENGKEL WHERE ID_BEN = $ID;";
 			
 			// execute query
-			$exe_sql = mysql_query($sql);
+			$exe_sql = mysqli_query($condb, $sql);
 			
 			// confirming the record is added
 			if ($exe_sql)
@@ -64,7 +64,7 @@
 				$sql2="DELETE FROM BENGKEL WHERE ID_BEN = $ID;";
 				
 				// execute query
-				$exe_sql2 = mysql_query($sql2);
+				$exe_sql2 = mysqli_query($condb, $sql2);
 				
 				echo '<html>
 						<head>
@@ -77,7 +77,7 @@
 			}
 			else
 			{
-				echo "SQL insert statement failed.<br>" . mysql_error();
+				echo "SQL insert statement failed.<br>";
 				
 				echo '<html>
 						<head>
@@ -94,10 +94,10 @@
 		if(isset($_GET['PADAM']) && is_numeric($_GET['PADAM']))
 		{
 			// get ID value
-			$ID = mysql_real_escape_string($_GET['PADAM']);
+			$ID = mysqli_real_escape_string($condb, $_GET['PADAM']);
 			
 			// delete the entry
-			$result = mysql_query("DELETE FROM BENGKEL WHERE ID_BEN = $ID"); 
+			$result = mysqli_query($condb, "DELETE FROM BENGKEL WHERE ID_BEN = $ID"); 
 			
 			// check for deletion
 			if ($result)
@@ -114,7 +114,7 @@
 			}
 			else
 			{
-				//echo "SQL insert statement failed.<br>" . mysql_error();
+				//echo "SQL insert statement failed.<br>";
 				echo '<html>
 						<head>
 							<script>
@@ -254,8 +254,8 @@
 	$sql2 = "SELECT * FROM INDUS";
 	
 	// execute selection query
-	$result1 = mysql_query($sql1) or die("SQL negeri select statement failed");
-	$result2 = mysql_query($sql2) or die("SQL industri select statement failed");
+	$result1 = mysqli_query($condb, $sql1) or die("SQL negeri select statement failed");
+	$result2 = mysqli_query($condb, $sql2) or die("SQL industri select statement failed");
 ?>
 								<center>
 									<table align="center" class="no-print">
@@ -291,7 +291,7 @@
 																<option disabled></option>
 <?php
 	$sel1 = null;
-	while ($row1 = mysql_fetch_array($result1))
+	while ($row1 = mysqli_fetch_array($result1))
 	{
 		$NEG1	= $row1["ID_NEGERI"];
 		$NEG2	= $row1["NEGERI"];
@@ -370,7 +370,7 @@
 																<option disabled></option>
 <?php
 				$sel3 = null;
-				while ($row2 = mysql_fetch_array($result2))
+				while ($row2 = mysqli_fetch_array($result2))
 				{
 					$IND1	= $row2["ID_INDUS"];
 					$IND2	= $row2["INDUSTRI"];
@@ -433,7 +433,7 @@
 		$sql = "SELECT * FROM BENGKEL WHERE NAMA LIKE '%$CARI%' UNION SELECT * FROM BENGKEL WHERE ALAMAT LIKE '%$CARI%' UNION SELECT * FROM BENGKEL WHERE PENCERAMAH LIKE '%$CARI%' ORDER BY NAMA";
 		
 		// execute listing query
-		$result	= mysql_query($sql) or die("SQL select statement failed");
+		$result	= mysqli_query($condb, $sql) or die("SQL select statement failed");
 	}
 	
 	// Papar senarai
@@ -471,7 +471,7 @@
 		$sql = "SELECT * FROM BENGKEL $TW ORDER BY NEGERI, NAMA";
 		
 		// execute listing query
-		$result = mysql_query($sql) or die("SQL select statement failed");
+		$result = mysqli_query($condb, $sql) or die("SQL select statement failed");
 	}
 ?>
                                 <table class="table table-hover table-striped">
@@ -496,8 +496,8 @@
 		
 		// Display negeri name array
 		$sql_dneg		= "SELECT * FROM NEGERI";
-		$result_dneg	= mysql_query($sql_dneg);
-		while($row_dneg	= mysql_fetch_array($result_dneg))
+		$result_dneg	= mysqli_query($condb, $sql_dneg);
+		while($row_dneg	= mysqli_fetch_array($result_dneg))
 		{
 			$DID_NEG		= $row_dneg["ID_NEGERI"];
 			$DNEG2			= $row_dneg["NEGERI"];
@@ -506,8 +506,8 @@
 		
 		// Display industri name array
 		$sql_dind		= "SELECT * FROM INDUS";
-		$result_dind	= mysql_query($sql_dind);
-		while($row_dind = mysql_fetch_array($result_dind))
+		$result_dind	= mysqli_query($condb, $sql_dind);
+		while($row_dind = mysqli_fetch_array($result_dind))
 		{
 			$DID_IND		= $row_dind["ID_INDUS"];
 			$DIND2			= $row_dind["INDUSTRI"];
@@ -516,8 +516,8 @@
 		
 		// Display industri name array
 		$sql_dkel		= "SELECT * FROM KELAYAKAN";
-		$result_dkel	= mysql_query($sql_dkel);
-		while($row_dkel = mysql_fetch_array($result_dkel))
+		$result_dkel	= mysqli_query($condb, $sql_dkel);
+		while($row_dkel = mysqli_fetch_array($result_dkel))
 		{
 			$DID_KEL		= $row_dkel["ID_KEL"];
 			$DKEL2			= $row_dkel["KEL"];
@@ -525,7 +525,7 @@
 		}
 		
 		// iterate through all rows in result set
-		while ($row = mysql_fetch_array($result))
+		while ($row = mysqli_fetch_array($result))
 		{
 			$BIL++;
 			

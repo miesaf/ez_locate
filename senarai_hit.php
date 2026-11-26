@@ -49,7 +49,7 @@
 		$sql="INSERT INTO LAWATAN (NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PEGAWAI) SELECT NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PEGAWAI FROM HIT_LAWATAN WHERE ID_LAW = $ID;";
 		
 		// execute query
-		$exe_sql = mysql_query($sql);
+		$exe_sql = mysqli_query($condb, $sql);
 		
 		// confirming the record is added
 		if ($exe_sql)
@@ -57,7 +57,7 @@
 			$sql2="DELETE FROM HIT_LAWATAN WHERE ID_LAW = $ID;";
 			
 			// execute query
-			$exe_sql2 = mysql_query($sql2);
+			$exe_sql2 = mysqli_query($condb, $sql2);
 			
 			echo '<html>
 					<head>
@@ -70,7 +70,7 @@
 		}
 		else
 		{
-			echo "SQL insert statement failed.<br>" . mysql_error();
+			echo "SQL insert statement failed.<br>";
 			
 			echo '<html>
 					<head>
@@ -93,7 +93,7 @@
 		$sql="INSERT INTO BENGKEL (NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PENCERAMAH, JAWATAN, KELAYAKAN, KEMAHIRAN) SELECT NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PENCERAMAH, JAWATAN, KELAYAKAN, KEMAHIRAN FROM HIT_BENGKEL WHERE ID_BEN = $ID;";
 		
 		// execute query
-		$exe_sql = mysql_query($sql);
+		$exe_sql = mysqli_query($condb, $sql);
 		
 		// confirming the record is added
 		if ($exe_sql)
@@ -101,7 +101,7 @@
 			$sql2="DELETE FROM HIT_BENGKEL WHERE ID_BEN = $ID;";
 			
 			// execute query
-			$exe_sql2 = mysql_query($sql2);
+			$exe_sql2 = mysqli_query($condb, $sql2);
 			
 			echo '<html>
 					<head>
@@ -114,7 +114,7 @@
 		}
 		else
 		{
-			echo "SQL insert statement failed.<br>" . mysql_error();
+			echo "SQL insert statement failed.<br>";
 			
 			echo '<html>
 					<head>
@@ -131,10 +131,10 @@
 	if(isset($_GET['P_LAW']) && is_numeric($_GET['P_LAW']))
 	{
 		// get ID value
-		$ID = mysql_real_escape_string($_GET['P_LAW']);
+		$ID = mysqli_real_escape_string($condb, $_GET['P_LAW']);
 		
 		// delete the entry
-		$result = mysql_query("DELETE FROM HIT_LAWATAN WHERE ID_LAW = $ID"); 
+		$result = mysqli_query($condb, "DELETE FROM HIT_LAWATAN WHERE ID_LAW = $ID"); 
 		
 		// check for deletion
 		if ($result)
@@ -151,7 +151,7 @@
 		}
 		else
 		{
-			//echo "SQL insert statement failed.<br>" . mysql_error();
+			//echo "SQL insert statement failed.<br>";
 			echo '<html>
 					<head>
 						<script>
@@ -167,10 +167,10 @@
 	if(isset($_GET['P_BEN']) && is_numeric($_GET['P_BEN']))
 	{
 		// get ID value
-		$ID = mysql_real_escape_string($_GET['P_BEN']);
+		$ID = mysqli_real_escape_string($condb, $_GET['P_BEN']);
 		
 		// delete the entry
-		$result = mysql_query("DELETE FROM HIT_BENGKEL WHERE ID_BEN = $ID"); 
+		$result = mysqli_query($condb, "DELETE FROM HIT_BENGKEL WHERE ID_BEN = $ID"); 
 		
 		// check for deletion
 		if ($result)
@@ -187,7 +187,7 @@
 		}
 		else
 		{
-			//echo "SQL insert statement failed.<br>" . mysql_error();
+			//echo "SQL insert statement failed.<br>";
 			echo '<html>
 					<head>
 						<script>
@@ -340,7 +340,7 @@
 		$sql = "SELECT * FROM HIT_LAWATAN ORDER BY NEGERI, NAMA";
 		
 		// execute listing query
-		$result = mysql_query($sql) or die("SQL select statement failed");
+		$result = mysqli_query($condb, $sql) or die("SQL select statement failed");
 ?>
 					<div class="col-md-12">
                         <div class="card">
@@ -367,8 +367,8 @@
 		
 		// Display negeri name array
 		$sql_dneg		= "SELECT * FROM NEGERI";
-		$result_dneg	= mysql_query($sql_dneg);
-		while($row_dneg	= mysql_fetch_array($result_dneg))
+		$result_dneg	= mysqli_query($condb, $sql_dneg);
+		while($row_dneg	= mysqli_fetch_array($result_dneg))
 		{
 			$DID_NEG		= $row_dneg["ID_NEGERI"];
 			$DNEG2			= $row_dneg["NEGERI"];
@@ -377,8 +377,8 @@
 		
 		// Display industri name array
 		$sql_dind		= "SELECT * FROM INDUS";
-		$result_dind	= mysql_query($sql_dind);
-		while($row_dind = mysql_fetch_array($result_dind))
+		$result_dind	= mysqli_query($condb, $sql_dind);
+		while($row_dind = mysqli_fetch_array($result_dind))
 		{
 			$DID_IND		= $row_dind["ID_INDUS"];
 			$DIND2			= $row_dind["INDUSTRI"];
@@ -386,7 +386,7 @@
 		}
 		
 		// iterate through all rows in result set
-		while ($row = mysql_fetch_array($result))
+		while ($row = mysqli_fetch_array($result))
 		{
 			$BIL++;
 			
@@ -440,7 +440,7 @@
 		$sql = "SELECT * FROM HIT_BENGKEL ORDER BY NEGERI, NAMA";
 		
 		// execute listing query
-		$result = mysql_query($sql) or die("SQL select statement failed");
+		$result = mysqli_query($condb, $sql) or die("SQL select statement failed");
 ?>
 					<div class="col-md-12">
                         <div class="card">
@@ -470,8 +470,8 @@
 		
 		// Display negeri name array
 		$sql_dneg		= "SELECT * FROM NEGERI";
-		$result_dneg	= mysql_query($sql_dneg);
-		while($row_dneg	= mysql_fetch_array($result_dneg))
+		$result_dneg	= mysqli_query($condb, $sql_dneg);
+		while($row_dneg	= mysqli_fetch_array($result_dneg))
 		{
 			$DID_NEG		= $row_dneg["ID_NEGERI"];
 			$DNEG2			= $row_dneg["NEGERI"];
@@ -480,8 +480,8 @@
 		
 		// Display industri name array
 		$sql_dind		= "SELECT * FROM INDUS";
-		$result_dind	= mysql_query($sql_dind);
-		while($row_dind = mysql_fetch_array($result_dind))
+		$result_dind	= mysqli_query($condb, $sql_dind);
+		while($row_dind = mysqli_fetch_array($result_dind))
 		{
 			$DID_IND		= $row_dind["ID_INDUS"];
 			$DIND2			= $row_dind["INDUSTRI"];
@@ -490,8 +490,8 @@
 		
 		// Display industri name array
 		$sql_dkel		= "SELECT * FROM KELAYAKAN";
-		$result_dkel	= mysql_query($sql_dkel);
-		while($row_dkel = mysql_fetch_array($result_dkel))
+		$result_dkel	= mysqli_query($condb, $sql_dkel);
+		while($row_dkel = mysqli_fetch_array($result_dkel))
 		{
 			$DID_KEL		= $row_dkel["ID_KEL"];
 			$DKEL2			= $row_dkel["KEL"];
@@ -499,7 +499,7 @@
 		}
 		
 		// iterate through all rows in result set
-		while ($row = mysql_fetch_array($result))
+		while ($row = mysqli_fetch_array($result))
 		{
 			$BIL++;
 			

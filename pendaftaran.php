@@ -43,18 +43,18 @@
 	if(isset($_POST["DAF"]) && ($_POST["DAF"] == "LAW"))
 	{
 		// Variables from pendaftaran.php
-		$NAMA		= mysql_real_escape_string($_POST['NAMA']);
-		$ALAMAT		= mysql_real_escape_string($_POST['ALAMAT']);
-		$NEGERI		= mysql_real_escape_string($_POST['NEGERI']);
-		$SEKTOR		= mysql_real_escape_string($_POST['SEKTOR']);
-		$INDUS		= mysql_real_escape_string($_POST['INDUS']);
-		$PEGAWAI	= mysql_real_escape_string($_POST['PEGAWAI']);
+		$NAMA		= mysqli_real_escape_string($condb, $_POST['NAMA']);
+		$ALAMAT		= mysqli_real_escape_string($condb, $_POST['ALAMAT']);
+		$NEGERI		= mysqli_real_escape_string($condb, $_POST['NEGERI']);
+		$SEKTOR		= mysqli_real_escape_string($condb, $_POST['SEKTOR']);
+		$INDUS		= mysqli_real_escape_string($condb, $_POST['INDUS']);
+		$PEGAWAI	= mysqli_real_escape_string($condb, $_POST['PEGAWAI']);
 		
 		//SQL query command
 		$sql="INSERT INTO LAWATAN (NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PEGAWAI) VALUES (\"$NAMA\", \"$ALAMAT\", \"$NEGERI\", \"$SEKTOR\", \"$INDUS\", \"$PEGAWAI\") ";
 		
 		// execute query
-		$exe_sql = mysql_query($sql);
+		$exe_sql = mysqli_query($condb, $sql);
 		
 		// confirming the record is added
 		if ($exe_sql)
@@ -70,7 +70,7 @@
 		}
 		else
 		{
-			echo "SQL insert statement failed.<br>" . mysql_error();
+			echo "SQL insert statement failed.<br>";
 			echo '<html>
 					<head>
 						<script>
@@ -85,21 +85,21 @@
 	if(isset($_POST["DAF"]) && ($_POST["DAF"] == "BEN"))
 	{
 		// Variables from pendaftaran.php
-		$NAMA		= mysql_real_escape_string($_POST['NAMA']);
-		$ALAMAT		= mysql_real_escape_string($_POST['ALAMAT']);
-		$NEGERI		= mysql_real_escape_string($_POST['NEGERI']);
-		$SEKTOR		= mysql_real_escape_string($_POST['SEKTOR']);
-		$INDUS		= mysql_real_escape_string($_POST['INDUS']);
-		$PENCERAMAH	= mysql_real_escape_string($_POST['PENCERAMAH']);
-		$JAWATAN	= mysql_real_escape_string($_POST['JAWATAN']);
-		$KELAYAKAN	= mysql_real_escape_string($_POST['KELAYAKAN']);
-		$KEMAHIRAN	= mysql_real_escape_string($_POST['KEMAHIRAN']);
+		$NAMA		= mysqli_real_escape_string($condb, $_POST['NAMA']);
+		$ALAMAT		= mysqli_real_escape_string($condb, $_POST['ALAMAT']);
+		$NEGERI		= mysqli_real_escape_string($condb, $_POST['NEGERI']);
+		$SEKTOR		= mysqli_real_escape_string($condb, $_POST['SEKTOR']);
+		$INDUS		= mysqli_real_escape_string($condb, $_POST['INDUS']);
+		$PENCERAMAH	= mysqli_real_escape_string($condb, $_POST['PENCERAMAH']);
+		$JAWATAN	= mysqli_real_escape_string($condb, $_POST['JAWATAN']);
+		$KELAYAKAN	= mysqli_real_escape_string($condb, $_POST['KELAYAKAN']);
+		$KEMAHIRAN	= mysqli_real_escape_string($condb, $_POST['KEMAHIRAN']);
 		
 		//SQL query command
 		$sql="INSERT INTO BENGKEL (NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PENCERAMAH, JAWATAN, KELAYAKAN, KEMAHIRAN) VALUES (\"$NAMA\", \"$ALAMAT\", \"$NEGERI\", \"$SEKTOR\", \"$INDUS\", \"$PENCERAMAH\", \"$JAWATAN\", \"$KELAYAKAN\", \"$KEMAHIRAN\")";
 		
 		// execute query
-		$exe_sql = mysql_query($sql);
+		$exe_sql = mysqli_query($condb, $sql);
 		
 		// confirming the record is added
 		if ($exe_sql)
@@ -115,7 +115,7 @@
 		}
 		else
 		{
-			echo "SQL insert statement failed.<br>" . mysql_error();
+			echo "SQL insert statement failed.<br>";
 			echo '<html>
 					<head>
 						<script>
@@ -301,8 +301,8 @@
 													<option disabled> </option>
 <?php
 		$sql_choose = "SELECT * FROM NEGERI";
-		$result_choose = mysql_query($sql_choose);
-		while ($row = mysql_fetch_array($result_choose))
+		$result_choose = mysqli_query($condb, $sql_choose);
+		while ($row = mysqli_fetch_array($result_choose))
 		{
 			$NEG1 = $row["ID_NEGERI"];
 			$NEG2 = $row["NEGERI"];
@@ -339,8 +339,8 @@
 													<option disabled> </option>
 <?php
 		$sql_choose = "SELECT * FROM INDUS";
-		$result_choose = mysql_query($sql_choose);
-		while ($row = mysql_fetch_array($result_choose))
+		$result_choose = mysqli_query($condb, $sql_choose);
+		while ($row = mysqli_fetch_array($result_choose))
 		{
 			$IND1 = $row["ID_INDUS"];
 			$IND2 = $row["INDUSTRI"];
@@ -411,8 +411,8 @@
 													<option disabled> </option>
 <?php
 		$sql_choose = "SELECT * FROM NEGERI";
-		$result_choose = mysql_query($sql_choose);
-		while ($row = mysql_fetch_array($result_choose))
+		$result_choose = mysqli_query($condb, $sql_choose);
+		while ($row = mysqli_fetch_array($result_choose))
 		{
 			$NEG1 = $row["ID_NEGERI"];
 			$NEG2 = $row["NEGERI"];
@@ -449,8 +449,8 @@
 													<option disabled> </option>
 <?php
 		$sql_choose = "SELECT * FROM INDUS";
-		$result_choose = mysql_query($sql_choose);
-		while ($row = mysql_fetch_array($result_choose))
+		$result_choose = mysqli_query($condb, $sql_choose);
+		while ($row = mysqli_fetch_array($result_choose))
 		{
 			$IND1 = $row["ID_INDUS"];
 			$IND2 = $row["INDUSTRI"];
@@ -491,8 +491,8 @@
 													<option disabled> </option>
 <?php
 		$sql_choose = "SELECT * FROM KELAYAKAN";
-		$result_choose = mysql_query($sql_choose);
-		while ($row = mysql_fetch_array($result_choose))
+		$result_choose = mysqli_query($condb, $sql_choose);
+		while ($row = mysqli_fetch_array($result_choose))
 		{
 			$KEL1 = $row["ID_KEL"];
 			$KEL2 = $row["KEL"];

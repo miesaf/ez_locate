@@ -2,8 +2,8 @@
 	session_start();
 	include("connectDB.php");
 	
-	$uname	= mysql_real_escape_string($_POST['uname']);
-	$pword	= mysql_real_escape_string($_POST['pword']);
+	$uname	= mysqli_real_escape_string($condb, $_POST['uname']);
+	$pword	= mysqli_real_escape_string($condb, $_POST['pword']);
 	
 	if(($uname == "12345") && ($pword == "admin"))
 	{

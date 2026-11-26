@@ -43,18 +43,18 @@
 	// Pinda lawatan
 		if(isset($_POST['PIN']))
 		{
-			$ID_PIN		= mysql_real_escape_string($_POST['PIN']);
-			$NAMA		= mysql_real_escape_string($_POST['NAMA']);
-			$ALAMAT		= mysql_real_escape_string($_POST['ALAMAT']);
-			$NEGERI		= mysql_real_escape_string($_POST['NEGERI']);
-			$SEKTOR		= mysql_real_escape_string($_POST['SEKTOR']);
-			$INDUS		= mysql_real_escape_string($_POST['INDUS']);
-			$PEGAWAI	= mysql_real_escape_string($_POST['PEGAWAI']);
+			$ID_PIN		= mysqli_real_escape_string($condb, $_POST['PIN']);
+			$NAMA		= mysqli_real_escape_string($condb, $_POST['NAMA']);
+			$ALAMAT		= mysqli_real_escape_string($condb, $_POST['ALAMAT']);
+			$NEGERI		= mysqli_real_escape_string($condb, $_POST['NEGERI']);
+			$SEKTOR		= mysqli_real_escape_string($condb, $_POST['SEKTOR']);
+			$INDUS		= mysqli_real_escape_string($condb, $_POST['INDUS']);
+			$PEGAWAI	= mysqli_real_escape_string($condb, $_POST['PEGAWAI']);
 			
 			$sql="UPDATE LAWATAN SET NAMA = '$NAMA', ALAMAT = '$ALAMAT', NEGERI = '$NEGERI', SEKTOR = '$SEKTOR', INDUS = '$INDUS', PEGAWAI = '$PEGAWAI' WHERE ID_LAW = $ID_PIN";
 			
 			// execute query
-			$exe_sql = mysql_query($sql);
+			$exe_sql = mysqli_query($condb, $sql);
 			
 			// confirming the record is added
 			if ($exe_sql)
@@ -70,7 +70,7 @@
 			}
 			else
 			{
-				echo "SQL insert statement failed.<br>" . mysql_error();
+				echo "SQL insert statement failed.<br>";
 				echo '<html>
 						<head>
 							<script>
@@ -202,8 +202,8 @@
 		$ID		= $_GET["ID"];
 		
 		$sql	= "SELECT * FROM LAWATAN WHERE ID_LAW = $ID";
-		$result	= mysql_query($sql);
-		if($row = mysql_fetch_array($result))
+		$result	= mysqli_query($condb, $sql);
+		if($row = mysqli_fetch_array($result))
 		{
 			$ID_LAW 	= $row["ID_LAW"];
 			$NAMA 		= $row["NAMA"];
@@ -248,8 +248,8 @@
 													<option disabled> </option>
 <?php
 			$sql_choose = "SELECT * FROM NEGERI";
-			$result_choose = mysql_query($sql_choose);
-			while ($row = mysql_fetch_array($result_choose))
+			$result_choose = mysqli_query($condb, $sql_choose);
+			while ($row = mysqli_fetch_array($result_choose))
 			{
 				$SEL	= null;
 				
@@ -291,8 +291,8 @@
 													<option disabled> </option>
 <?php
 			$sql_choose = "SELECT * FROM INDUS";
-			$result_choose = mysql_query($sql_choose);
-			while ($row = mysql_fetch_array($result_choose))
+			$result_choose = mysqli_query($condb, $sql_choose);
+			while ($row = mysqli_fetch_array($result_choose))
 			{
 				$SEL	= null;
 				
