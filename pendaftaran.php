@@ -1,3 +1,4 @@
+<?php ob_start(); ?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -32,29 +33,27 @@
 	
 <?php
 	session_start();
-	if(!$_SESSION['el_login'])
-	{
-		header("Location: index.php?ERR=expired");
-		exit;
-	}
-	
 	include('connectDB.php');
+	
+	// Admin only
+	require_login();
 	
 	if(isset($_POST["DAF"]) && ($_POST["DAF"] == "LAW"))
 	{
 		// Variables from pendaftaran.php
-		$NAMA		= mysql_real_escape_string($_POST['NAMA']);
-		$ALAMAT		= mysql_real_escape_string($_POST['ALAMAT']);
-		$NEGERI		= mysql_real_escape_string($_POST['NEGERI']);
-		$SEKTOR		= mysql_real_escape_string($_POST['SEKTOR']);
-		$INDUS		= mysql_real_escape_string($_POST['INDUS']);
-		$PEGAWAI	= mysql_real_escape_string($_POST['PEGAWAI']);
+		$NAMA		= request_text($_POST, 'NAMA') ?? '';
+		$ALAMAT		= request_text($_POST, 'ALAMAT') ?? '';
+		$NEGERI		= request_text($_POST, 'NEGERI') ?? '';
+		$SEKTOR		= request_text($_POST, 'SEKTOR') ?? '';
+		$INDUS		= request_text($_POST, 'INDUS') ?? '';
+		$PEGAWAI	= request_text($_POST, 'PEGAWAI') ?? '';
 		
 		//SQL query command
-		$sql="INSERT INTO LAWATAN (NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PEGAWAI) VALUES (\"$NAMA\", \"$ALAMAT\", \"$NEGERI\", \"$SEKTOR\", \"$INDUS\", \"$PEGAWAI\") ";
+		$sql="INSERT INTO LAWATAN (NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PEGAWAI) VALUES (?, ?, ?, ?, ?, ?)";
+		$PARAMS	= [$NAMA, $ALAMAT, $NEGERI, $SEKTOR, $INDUS, $PEGAWAI];
 		
 		// execute query
-		$exe_sql = mysql_query($sql);
+		$exe_sql = db_query($sql, $PARAMS);
 		
 		// confirming the record is added
 		if ($exe_sql)
@@ -70,7 +69,7 @@
 		}
 		else
 		{
-			echo "SQL insert statement failed.<br>" . mysql_error();
+			echo "SQL insert statement failed.<br>";
 			echo '<html>
 					<head>
 						<script>
@@ -85,21 +84,22 @@
 	if(isset($_POST["DAF"]) && ($_POST["DAF"] == "BEN"))
 	{
 		// Variables from pendaftaran.php
-		$NAMA		= mysql_real_escape_string($_POST['NAMA']);
-		$ALAMAT		= mysql_real_escape_string($_POST['ALAMAT']);
-		$NEGERI		= mysql_real_escape_string($_POST['NEGERI']);
-		$SEKTOR		= mysql_real_escape_string($_POST['SEKTOR']);
-		$INDUS		= mysql_real_escape_string($_POST['INDUS']);
-		$PENCERAMAH	= mysql_real_escape_string($_POST['PENCERAMAH']);
-		$JAWATAN	= mysql_real_escape_string($_POST['JAWATAN']);
-		$KELAYAKAN	= mysql_real_escape_string($_POST['KELAYAKAN']);
-		$KEMAHIRAN	= mysql_real_escape_string($_POST['KEMAHIRAN']);
+		$NAMA		= request_text($_POST, 'NAMA') ?? '';
+		$ALAMAT		= request_text($_POST, 'ALAMAT') ?? '';
+		$NEGERI		= request_text($_POST, 'NEGERI') ?? '';
+		$SEKTOR		= request_text($_POST, 'SEKTOR') ?? '';
+		$INDUS		= request_text($_POST, 'INDUS') ?? '';
+		$PENCERAMAH	= request_text($_POST, 'PENCERAMAH') ?? '';
+		$JAWATAN	= request_text($_POST, 'JAWATAN') ?? '';
+		$KELAYAKAN	= request_text($_POST, 'KELAYAKAN') ?? '';
+		$KEMAHIRAN	= request_text($_POST, 'KEMAHIRAN') ?? '';
 		
 		//SQL query command
-		$sql="INSERT INTO BENGKEL (NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PENCERAMAH, JAWATAN, KELAYAKAN, KEMAHIRAN) VALUES (\"$NAMA\", \"$ALAMAT\", \"$NEGERI\", \"$SEKTOR\", \"$INDUS\", \"$PENCERAMAH\", \"$JAWATAN\", \"$KELAYAKAN\", \"$KEMAHIRAN\")";
+		$sql="INSERT INTO BENGKEL (NAMA, ALAMAT, NEGERI, SEKTOR, INDUS, PENCERAMAH, JAWATAN, KELAYAKAN, KEMAHIRAN) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		$PARAMS	= [$NAMA, $ALAMAT, $NEGERI, $SEKTOR, $INDUS, $PENCERAMAH, $JAWATAN, $KELAYAKAN, $KEMAHIRAN];
 		
 		// execute query
-		$exe_sql = mysql_query($sql);
+		$exe_sql = db_query($sql, $PARAMS);
 		
 		// confirming the record is added
 		if ($exe_sql)
@@ -115,7 +115,7 @@
 		}
 		else
 		{
-			echo "SQL insert statement failed.<br>" . mysql_error();
+			echo "SQL insert statement failed.<br>";
 			echo '<html>
 					<head>
 						<script>
@@ -168,7 +168,7 @@
                     </a>
                 </li>
 <?php
-	if(isset($_SESSION['el_login']))
+	if(!empty($_SESSION['el_login']))
 	{
 ?>
 				<li class="active">
@@ -301,13 +301,13 @@
 													<option disabled> </option>
 <?php
 		$sql_choose = "SELECT * FROM NEGERI";
-		$result_choose = mysql_query($sql_choose);
-		while ($row = mysql_fetch_array($result_choose))
+		$result_choose = db_query($sql_choose);
+		while ($row = mysqli_fetch_array($result_choose))
 		{
 			$NEG1 = $row["ID_NEGERI"];
 			$NEG2 = $row["NEGERI"];
 ?>
-													<option value="<?php echo $NEG1; ?>"> <?php echo $NEG2;?> </option>
+													<option value="<?php echo e($NEG1); ?>"> <?php echo e($NEG2);?> </option>
 <?php
 		}
 ?>
@@ -339,13 +339,13 @@
 													<option disabled> </option>
 <?php
 		$sql_choose = "SELECT * FROM INDUS";
-		$result_choose = mysql_query($sql_choose);
-		while ($row = mysql_fetch_array($result_choose))
+		$result_choose = db_query($sql_choose);
+		while ($row = mysqli_fetch_array($result_choose))
 		{
 			$IND1 = $row["ID_INDUS"];
 			$IND2 = $row["INDUSTRI"];
 ?>
-													<option value="<?php echo $IND1; ?>"> <?php echo $IND2;?> </option>
+													<option value="<?php echo e($IND1); ?>"> <?php echo e($IND2);?> </option>
 <?php
 		}
 ?>
@@ -411,13 +411,13 @@
 													<option disabled> </option>
 <?php
 		$sql_choose = "SELECT * FROM NEGERI";
-		$result_choose = mysql_query($sql_choose);
-		while ($row = mysql_fetch_array($result_choose))
+		$result_choose = db_query($sql_choose);
+		while ($row = mysqli_fetch_array($result_choose))
 		{
 			$NEG1 = $row["ID_NEGERI"];
 			$NEG2 = $row["NEGERI"];
 ?>
-													<option value="<?php echo $NEG1; ?>"> <?php echo $NEG2;?> </option>
+													<option value="<?php echo e($NEG1); ?>"> <?php echo e($NEG2);?> </option>
 <?php
 		}
 ?>
@@ -449,13 +449,13 @@
 													<option disabled> </option>
 <?php
 		$sql_choose = "SELECT * FROM INDUS";
-		$result_choose = mysql_query($sql_choose);
-		while ($row = mysql_fetch_array($result_choose))
+		$result_choose = db_query($sql_choose);
+		while ($row = mysqli_fetch_array($result_choose))
 		{
 			$IND1 = $row["ID_INDUS"];
 			$IND2 = $row["INDUSTRI"];
 ?>
-													<option value="<?php echo $IND1; ?>"> <?php echo $IND2;?> </option>
+													<option value="<?php echo e($IND1); ?>"> <?php echo e($IND2);?> </option>
 <?php
 		}
 ?>
@@ -491,13 +491,13 @@
 													<option disabled> </option>
 <?php
 		$sql_choose = "SELECT * FROM KELAYAKAN";
-		$result_choose = mysql_query($sql_choose);
-		while ($row = mysql_fetch_array($result_choose))
+		$result_choose = db_query($sql_choose);
+		while ($row = mysqli_fetch_array($result_choose))
 		{
 			$KEL1 = $row["ID_KEL"];
 			$KEL2 = $row["KEL"];
 ?>
-													<option value="<?php echo $KEL1; ?>"> <?php echo $KEL2;?> </option>
+													<option value="<?php echo e($KEL1); ?>"> <?php echo e($KEL2);?> </option>
 <?php
 		}
 ?>

@@ -1,3 +1,4 @@
+<?php ob_start(); ?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -70,7 +71,7 @@
                 </li>
 <?php
 			session_start();
-			if(isset($_SESSION['el_login']))
+			if(!empty($_SESSION['el_login']))
 			{
 ?>
 				<li>
@@ -143,7 +144,7 @@
         <div class="content">
             <div class="container-fluid">
 <?php
-if(isset($_SESSION["el_login"]))
+if(!empty($_SESSION['el_login']))
 {
 ?>
                 <div class="row">

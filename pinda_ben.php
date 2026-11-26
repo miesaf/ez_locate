@@ -1,3 +1,4 @@
+<?php ob_start(); ?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -32,32 +33,30 @@
 	
 <?php
 	session_start();
-	if(!$_SESSION['el_login'])
-	{
-		header("Location: index.php?ERR=expired");
-		exit;
-	}
-	
 	include('connectDB.php');
+	
+	// Admin only
+	require_login();
 	
 	// Pinda Kompeni
 		if(isset($_POST['PIN']))
 		{
-			$ID_PIN		= mysql_real_escape_string($_POST['PIN']);
-			$NAMA		= mysql_real_escape_string($_POST['NAMA']);
-			$ALAMAT		= mysql_real_escape_string($_POST['ALAMAT']);
-			$NEGERI		= mysql_real_escape_string($_POST['NEGERI']);
-			$SEKTOR		= mysql_real_escape_string($_POST['SEKTOR']);
-			$INDUS		= mysql_real_escape_string($_POST['INDUS']);
-			$PENCERAMAH	= mysql_real_escape_string($_POST['PENCERAMAH']);
-			$JAWATAN	= mysql_real_escape_string($_POST['JAWATAN']);
-			$KELAYAKAN	= mysql_real_escape_string($_POST['KELAYAKAN']);
-			$KEMAHIRAN	= mysql_real_escape_string($_POST['KEMAHIRAN']);
+			$ID_PIN		= request_id($_POST, 'PIN');
+			$NAMA		= request_text($_POST, 'NAMA') ?? '';
+			$ALAMAT		= request_text($_POST, 'ALAMAT') ?? '';
+			$NEGERI		= request_text($_POST, 'NEGERI') ?? '';
+			$SEKTOR		= request_text($_POST, 'SEKTOR') ?? '';
+			$INDUS		= request_text($_POST, 'INDUS') ?? '';
+			$PENCERAMAH	= request_text($_POST, 'PENCERAMAH') ?? '';
+			$JAWATAN	= request_text($_POST, 'JAWATAN') ?? '';
+			$KELAYAKAN	= request_text($_POST, 'KELAYAKAN') ?? '';
+			$KEMAHIRAN	= request_text($_POST, 'KEMAHIRAN') ?? '';
 			
-			$sql="UPDATE BENGKEL SET NAMA = '$NAMA', ALAMAT = '$ALAMAT', NEGERI = '$NEGERI', SEKTOR = '$SEKTOR', INDUS = '$INDUS', PENCERAMAH = '$PENCERAMAH', JAWATAN = '$JAWATAN', KELAYAKAN = '$KELAYAKAN', KEMAHIRAN = '$KEMAHIRAN' WHERE ID_BEN = $ID_PIN";
+			$sql="UPDATE BENGKEL SET NAMA = ?, ALAMAT = ?, NEGERI = ?, SEKTOR = ?, INDUS = ?, PENCERAMAH = ?, JAWATAN = ?, KELAYAKAN = ?, KEMAHIRAN = ? WHERE ID_BEN = ?";
+			$PARAMS	= [$NAMA, $ALAMAT, $NEGERI, $SEKTOR, $INDUS, $PENCERAMAH, $JAWATAN, $KELAYAKAN, $KEMAHIRAN, $ID_PIN];
 			
 			// execute query
-			$exe_sql = mysql_query($sql);
+			$exe_sql = ($ID_PIN !== null) && db_query($sql, $PARAMS);
 			
 			// confirming the record is added
 			if ($exe_sql)
@@ -73,7 +72,7 @@
 			}
 			else
 			{
-				echo "SQL insert statement failed.<br>" . mysql_error();
+				echo "SQL insert statement failed.<br>";
 				echo '<html>
 						<head>
 							<script>
@@ -126,7 +125,7 @@
                     </a>
                 </li>
 <?php
-	if(isset($_SESSION['el_login']))
+	if(!empty($_SESSION['el_login']))
 	{
 ?>
 				<li>
@@ -200,13 +199,12 @@
             <div class="container-fluid">
                 <div class="row">
 <?php
-	if(isset($_GET["ID"]))
+	$ID = request_id($_GET, "ID");
+	if($ID !== null)
 	{
-		$ID		= $_GET["ID"];
-		
-		$sql	= "SELECT * FROM BENGKEL WHERE ID_BEN = $ID";
-		$result	= mysql_query($sql);
-		if($row = mysql_fetch_array($result))
+		$sql	= "SELECT * FROM BENGKEL WHERE ID_BEN = ?";
+		$result	= db_query($sql, [$ID]);
+		if($result && ($row = mysqli_fetch_array($result)))
 		{
 			$ID_BEN 	= $row["ID_BEN"];
 			$NAMA 		= $row["NAMA"];
@@ -226,12 +224,12 @@
                             </div>
                             <div class="content">
 								<form id="BEN" action="pinda_ben.php" method="POST">
-									<input type="hidden" name="PIN" value="<?php echo $ID_BEN; ?>">
+									<input type="hidden" name="PIN" value="<?php echo e($ID_BEN); ?>">
                                     <div class="row">
                                         <div class="col-md-8">
                                             <div class="form-group">
                                                 <label>Nama Organisasi</label>
-                                                <input type="text" class="form-control" name="NAMA" value="<?php echo $NAMA; ?>">
+                                                <input type="text" class="form-control" name="NAMA" value="<?php echo e($NAMA); ?>">
                                             </div>
                                         </div>
                                     </div>
@@ -240,7 +238,7 @@
                                         <div class="col-md-8">
                                             <div class="form-group">
                                                 <label>Alamat Organisasi</label>
-                                                <textarea rows="5" class="form-control" name="ALAMAT"><?php echo $ALAMAT; ?></textarea>
+                                                <textarea rows="5" class="form-control" name="ALAMAT"><?php echo e($ALAMAT); ?></textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -254,8 +252,8 @@
 													<option disabled> </option>
 <?php
 			$sql_choose = "SELECT * FROM NEGERI";
-			$result_choose = mysql_query($sql_choose);
-			while ($row = mysql_fetch_array($result_choose))
+			$result_choose = db_query($sql_choose);
+			while ($row = mysqli_fetch_array($result_choose))
 			{
 				$SEL	= null;
 				
@@ -265,7 +263,7 @@
 				if($NEGERI == $NEG1)
 				{	$SEL = "selected"; }
 ?>
-													<option value="<?php echo $NEG1; ?>" <?php echo $SEL; ?>> <?php echo $NEG2;?> </option>
+													<option value="<?php echo e($NEG1); ?>" <?php echo $SEL; ?>> <?php echo e($NEG2);?> </option>
 <?php
 			}
 ?>
@@ -297,8 +295,8 @@
 													<option disabled> </option>
 <?php
 			$sql_choose = "SELECT * FROM INDUS";
-			$result_choose = mysql_query($sql_choose);
-			while ($row = mysql_fetch_array($result_choose))
+			$result_choose = db_query($sql_choose);
+			while ($row = mysqli_fetch_array($result_choose))
 			{
 				$SEL	= null;
 				
@@ -308,7 +306,7 @@
 				if($INDUS == $IND1)
 				{	$SEL = "selected"; }
 ?>
-													<option value="<?php echo $IND1; ?>" <?php echo $SEL; ?>> <?php echo $IND2;?> </option>
+													<option value="<?php echo e($IND1); ?>" <?php echo $SEL; ?>> <?php echo e($IND2);?> </option>
 <?php
 			}
 ?>
@@ -321,7 +319,7 @@
                                         <div class="col-md-8">
                                             <div class="form-group">
                                                 <label>Nama & Nombor Telefon Penceramah</label>
-												<textarea rows="5" class="form-control" name="PENCERAMAH"><?php echo $PENCERAMAH; ?></textarea>
+												<textarea rows="5" class="form-control" name="PENCERAMAH"><?php echo e($PENCERAMAH); ?></textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -330,7 +328,7 @@
                                         <div class="col-md-8">
                                             <div class="form-group">
                                                 <label>Jawatan</label>
-                                                <input type="text" class="form-control" name="JAWATAN" value="<?php echo $JAWATAN; ?>">
+                                                <input type="text" class="form-control" name="JAWATAN" value="<?php echo e($JAWATAN); ?>">
                                             </div>
                                         </div>
                                     </div>
@@ -344,8 +342,8 @@
 													<option disabled> </option>
 <?php
 			$sql_choose = "SELECT * FROM KELAYAKAN";
-			$result_choose = mysql_query($sql_choose);
-			while ($row = mysql_fetch_array($result_choose))
+			$result_choose = db_query($sql_choose);
+			while ($row = mysqli_fetch_array($result_choose))
 			{
 				$SEL	= null;
 				
@@ -355,7 +353,7 @@
 				if($KELAYAKAN == $KEL1)
 				{	$SEL = "selected"; }
 ?>
-													<option value="<?php echo $KEL1; ?>" <?php echo $SEL; ?>> <?php echo $KEL2;?> </option>
+													<option value="<?php echo e($KEL1); ?>" <?php echo $SEL; ?>> <?php echo e($KEL2);?> </option>
 <?php
 			}
 ?>
